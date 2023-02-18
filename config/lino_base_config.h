@@ -30,7 +30,8 @@
 // #define USE_I2C_COMMMANDER_MOTOR_DRIVER // Simple FOC I2C commander https://github.com/simplefoc/Arduino-FOC-drivers/tree/master/src/comms/i2c#readme
 
 //uncomment the IMU you're using
-#define USE_MPU6050_IMU
+//#define USE_MPU6050_IMU
+#define USE_GY85_IMU
 
 #define K_P 0.6                             // P constant
 #define K_I 0.8                             // I constant

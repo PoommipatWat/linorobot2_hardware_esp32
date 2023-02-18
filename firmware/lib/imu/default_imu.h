@@ -21,6 +21,81 @@
 //include sensor API headers
 #include "I2Cdev.h"
 #include "MPU6050.h"
+#include "ADXL345.h"
+#include "ITG3200.h"
+//#include "HMC5883L.h"
+
+class GY85IMU: public IMUInterface 
+{
+    private:
+        //constants specific to the sensor
+        const float accel_scale_ = 1 / 256.0;
+        const float gyro_scale_ = 1 / 14.375;
+
+        // driver objects to be used
+        ADXL345 accelerometer_;
+        ITG3200 gyroscope_;
+
+        // returned vector for sensor reading
+        geometry_msgs__msg__Vector3 accel_;
+        geometry_msgs__msg__Vector3 gyro_;
+
+    public:
+        GY85IMU()
+        {
+            // accel_cov_ = 0.001; //you can overwrite the convariance values here
+            // gyro_cov_ = 0.001; //you can overwrite the convariance values here
+        }
+
+        bool startSensor() override
+        {
+            // here you can override startSensor() function and use the sensor's driver API
+            // to initialize and test the sensor's connection during boot time
+            Wire.begin();
+            bool ret;
+            accelerometer_.initialize();
+            ret = accelerometer_.testConnection();
+            if(!ret)
+                return false;
+
+            gyroscope_.initialize();
+            ret = gyroscope_.testConnection();
+            if(!ret)
+                return false;
+
+            return true;
+        }
+
+        geometry_msgs__msg__Vector3 readAccelerometer() override
+        {
+            // here you can override readAccelerometer function and use the sensor's driver API
+            // to grab the data from accelerometer and return as a Vector3 object
+            int16_t ax, ay, az;
+            
+            accelerometer_.getAcceleration(&ax, &ay, &az);
+
+            accel_.x = ax * (double) accel_scale_ * g_to_accel_;
+            accel_.y = ay * (double) accel_scale_ * g_to_accel_;
+            accel_.z = az * (double) accel_scale_ * g_to_accel_;
+
+            return accel_;
+        }
+
+        geometry_msgs__msg__Vector3 readGyroscope() override
+        {
+            // here you can override readAccelerometer function and use the sensor's driver API
+            // to grab the data from gyroscope and return as a Vector3 object
+            int16_t gx, gy, gz;
+
+            gyroscope_.getRotation(&gx, &gy, &gz);
+
+            gyro_.x = gx * (double) gyro_scale_ * DEG_TO_RAD;
+            gyro_.y = gy * (double) gyro_scale_ * DEG_TO_RAD;
+            gyro_.z = gz * (double) gyro_scale_ * DEG_TO_RAD;
+
+            return gyro_;
+        }
+};
 
 class MPU6050IMU: public IMUInterface 
 {
